@@ -1,0 +1,80 @@
+// =============================================
+//  Shake Heaven – Order Backend (Node/Express)
+// =============================================
+// SETUP:
+//   1. npm install express cors
+//   2. node server.js
+//   Orders are saved to orders.json in this folder.
+// =============================================
+
+const express = require('express');
+const cors    = require('cors');
+const fs      = require('fs');
+const path    = require('path');
+
+const app  = express();
+const PORT = 3000;
+const DB   = path.join(__dirname, 'orders.json');
+
+// ── Middleware ──────────────────────────────
+app.use(cors());               // allow requests from your HTML file
+app.use(express.json());       // parse JSON body
+app.use(express.static(__dirname)); // serve shakes-menu.html directly
+
+// ── Helper: load/save orders ────────────────
+function loadOrders() {
+  if (!fs.existsSync(DB)) return [];
+  return JSON.parse(fs.readFileSync(DB, 'utf-8'));
+}
+
+function saveOrders(orders) {
+  fs.writeFileSync(DB, JSON.stringify(orders, null, 2));
+}
+
+// ── POST /api/orders  (place an order) ──────
+app.post('/api/orders', (req, res) => {
+  const { shake, size, qty, notes, placedAt } = req.body;
+
+  if (!shake || !size) {
+    return res.status(400).json({ error: 'shake and size are required' });
+  }
+
+  const order = {
+    id: Date.now(),
+    shake,
+    size,
+    qty: qty || 1,
+    notes: notes || '',
+    status: 'received',
+    placedAt: placedAt || new Date().toISOString()
+  };
+
+  const orders = loadOrders();
+  orders.push(order);
+  saveOrders(orders);
+
+  console.log(`✅ New order #${order.id}: ${qty}x ${shake} (${size})`);
+  res.status(201).json({ success: true, order });
+});
+
+// ── GET /api/orders  (view all orders) ──────
+app.get('/api/orders', (req, res) => {
+  res.json(loadOrders());
+});
+
+// ── DELETE /api/orders/:id  (remove order) ──
+app.delete('/api/orders/:id', (req, res) => {
+  let orders = loadOrders();
+  const before = orders.length;
+  orders = orders.filter(o => o.id !== parseInt(req.params.id));
+  if (orders.length === before) return res.status(404).json({ error: 'Order not found' });
+  saveOrders(orders);
+  res.json({ success: true });
+});
+
+// ── Start ────────────────────────────────────
+app.listen(PORT, () => {
+  console.log(`\n🥤 Shake Heaven server running!`);
+  console.log(`   Website  → http://localhost:${PORT}/shakes-menu.html`);
+  console.log(`   Orders   → http://localhost:${PORT}/api/orders\n`);
+});
