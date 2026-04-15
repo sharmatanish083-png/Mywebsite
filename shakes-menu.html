@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShakeShack – Shake Menu & Order</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #fdf6ec;
+      --brown: #3b1f0e;
+      --caramel: #c9702e;
+      --pink: #e8a0b0;
+      --mint: #7ec8a4;
+      --choco: #6b3a2a;
+      --yellow: #f5d269;
+      --white: #fff;
+      --shadow: 0 8px 32px rgba(59,31,14,0.13);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--brown);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      background: var(--brown);
+      padding: 60px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(201,112,46,0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      display: inline-block;
+      background: var(--caramel);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 6px 18px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+      animation: fadeDown 0.6s ease both;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 8vw, 5.5rem);
+      color: var(--cream);
+      line-height: 1.05;
+      animation: fadeDown 0.7s 0.1s ease both;
+    }
+    .hero h1 span { color: var(--yellow); }
+    .hero p {
+      color: rgba(253,246,236,0.65);
+      font-size: 1rem;
+      margin-top: 16px;
+      animation: fadeDown 0.7s 0.2s ease both;
+    }
+    .hero-cta {
+      display: inline-block;
+      margin-top: 32px;
+      background: var(--caramel);
+      color: var(--white);
+      padding: 14px 36px;
+      border-radius: 100px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: fadeDown 0.7s 0.3s ease both;
+      box-shadow: 0 4px 20px rgba(201,112,46,0.4);
+    }
+    .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(201,112,46,0.5); }
+
+    /* ===== SECTION TITLE ===== */
+    .section-title {
+      text-align: center;
+      padding: 64px 24px 16px;
+    }
+    .section-title h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: var(--brown);
+    }
+    .section-title p { color: #7a5c45; margin-top: 8px; font-size: 0.95rem; }
+
+    /* ===== MENU GRID ===== */
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 28px;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 24px 64px;
+    }
+
+    .shake-card {
+      background: var(--white);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.25s, box-shadow 0.25s;
+      cursor: pointer;
+      animation: fadeUp 0.5s ease both;
+    }
+    .shake-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(59,31,14,0.18); }
+
+    .card-img {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+      position: relative;
+    }
+    .card-badge {
+      position: absolute;
+      top: 12px; right: 14px;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 100px;
+      background: var(--brown);
+      color: var(--cream);
+    }
+
+    .card-body { padding: 20px 22px 22px; }
+    .card-body h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--brown); }
+    .card-body p { font-size: 0.85rem; color: #8a6a55; margin-top: 6px; line-height: 1.5; }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 18px;
+    }
+    .price {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      color: var(--caramel);
+      font-weight: 700;
+    }
+    .add-btn {
+      background: var(--brown);
+      color: var(--white);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .add-btn:hover { background: var(--caramel); transform: scale(1.05); }
+
+    /* ===== ORDER FORM ===== */
+    .order-section {
+      background: var(--brown);
+      padding: 64px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .order-section::before {
+      content: '';
+      position: absolute;
+      bottom: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(201,112,46,0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .order-section .section-title h2 { color: var(--cream); }
+    .order-section .section-title p { color: rgba(253,246,236,0.6); }
+
+    .order-form {
+      max-width: 620px;
+      margin: 32px auto 0;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(253,246,236,0.12);
+      border-radius: 28px;
+      padding: 40px 36px;
+      backdrop-filter: blur(8px);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media(max-width: 520px){ .form-row { grid-template-columns: 1fr; } .order-form { padding: 28px 20px; } }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 20px;
+    }
+    .field label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: rgba(253,246,236,0.7);
+    }
+    .field input, .field select, .field textarea {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(253,246,236,0.18);
+      border-radius: 12px;
+      padding: 13px 16px;
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.2s, background 0.2s;
+    }
+    .field input::placeholder, .field textarea::placeholder { color: rgba(253,246,236,0.35); }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--caramel);
+      background: rgba(255,255,255,0.13);
+    }
+    .field select option { background: var(--brown); color: var(--cream); }
+    .field textarea { resize: vertical; min-height: 90px; }
+
+    .shake-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .shake-option {
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(253,246,236,0.15);
+      border-radius: 14px;
+      padding: 12px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: rgba(253,246,236,0.75);
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+    .shake-option .so-emoji { font-size: 1.8rem; display: block; margin-bottom: 5px; }
+    .shake-option:hover { border-color: var(--caramel); color: var(--cream); }
+    .shake-option.selected {
+      border-color: var(--caramel);
+      background: rgba(201,112,46,0.2);
+      color: var(--yellow);
+    }
+
+    .size-btns {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;
+    }
+    .size-btn {
+      flex: 1; min-width: 80px;
+      padding: 11px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(253,246,236,0.18);
+      background: rgba(255,255,255,0.06);
+      color: rgba(253,246,236,0.7);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .size-btn:hover { border-color: var(--caramel); color: var(--cream); }
+    .size-btn.selected {
+      border-color: var(--caramel);
+      background: rgba(201,112,46,0.2);
+      color: var(--yellow);
+    }
+
+    .form-label-top {
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: rgba(253,246,236,0.7);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--caramel);
+      color: var(--white);
+      border: none;
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+      box-shadow: 0 4px 20px rgba(201,112,46,0.35);
+    }
+    .submit-btn:hover { background: #b5601e; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(201,112,46,0.45); }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      bottom: 32px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: var(--mint);
+      color: var(--brown);
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: #1e0d05;
+      color: rgba(253,246,236,0.45);
+      text-align: center;
+      padding: 28px;
+      font-size: 0.85rem;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* stagger menu cards */
+    .shake-card:nth-child(1){animation-delay:0.05s}
+    .shake-card:nth-child(2){animation-delay:0.12s}
+    .shake-card:nth-child(3){animation-delay:0.18s}
+    .shake-card:nth-child(4){animation-delay:0.24s}
+    .shake-card:nth-child(5){animation-delay:0.30s}
+    .shake-card:nth-child(6){animation-delay:0.36s}
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">🥤 Open Now</div>
+  <h1>Shake <span>Heaven</span></h1>
+  <p>Thick, creamy, made-to-order shakes crafted with love</p>
+  <a href="#order" class="hero-cta">Order Now ↓</a>
+</header>
+
+<!-- MENU -->
+<div class="section-title">
+  <h2>Our Shake Menu</h2>
+  <p>Pick your favourite — every shake is freshly blended</p>
+</div>
+
+<div class="menu">
+  <div class="shake-card">
+    <div class="card-img" style="background:#fce4ec;">🍓 <span class="card-badge">Popular</span></div>
+    <div class="card-body">
+      <h3>Strawberry Bliss</h3>
+      <p>Fresh strawberries blended with creamy vanilla ice cream and a hint of honey.</p>
+      <div class="card-footer">
+        <span class="price">$5.99</span>
+        <button class="add-btn" onclick="selectShake('Strawberry Bliss')">Add to Order</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="shake-card">
+    <div class="card-img" style="background:#efebe9;">🍫</div>
+    <div class="card-body">
+      <h3>Choco Velvet</h3>
+      <p>Rich dark chocolate shake with fudge swirls and whipped cream on top.</p>
+      <div class="card-footer">
+        <span class="price">$6.49</span>
+        <button class="add-btn" onclick="selectShake('Choco Velvet')">Add to Order</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="shake-card">
+    <div class="card-img" style="background:#e3f2fd;">🫐 <span class="card-badge">New</span></div>
+    <div class="card-body">
+      <h3>Blueberry Dream</h3>
+      <p>Plump blueberries, Greek yogurt, and lavender syrup — refreshingly unique.</p>
+      <div class="card-footer">
+        <span class="price">$6.99</span>
+        <button class="add-btn" onclick="selectShake('Blueberry Dream')">Add to Order</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="shake-card">
+    <div class="card-img" style="background:#fff8e1;">🥭</div>
+    <div class="card-body">
+      <h3>Mango Tango</h3>
+      <p>Tropical Alphonso mango, coconut milk, and a squeeze of lime zest.</p>
+      <div class="card-footer">
+        <span class="price">$5.99</span>
+        <button class="add-btn" onclick="selectShake('Mango Tango')">Add to Order</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="shake-card">
+    <div class="card-img" style="background:#f9fbe7;">🍵 <span class="card-badge">Vegan</span></div>
+    <div class="card-body">
+      <h3>Matcha Zen</h3>
+      <p>Ceremonial grade matcha, oat milk, and white chocolate for a dreamy finish.</p>
+      <div class="card-footer">
+        <span class="price">$7.49</span>
+        <button class="add-btn" onclick="selectShake('Matcha Zen')">Add to Order</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="shake-card">
+    <div class="card-img" style="background:#fce4ce;">🍦</div>
+    <div class="card-body">
+      <h3>Caramel Cloud</h3>
+      <p>Salted caramel, vanilla bean, and toffee bits — pure comfort in a glass.</p>
+      <div class="card-footer">
+        <span class="price">$6.49</span>
+        <button class="add-btn" onclick="selectShake('Caramel Cloud')">Add to Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER FORM -->
+<section class="order-section" id="order">
+  <div class="section-title">
+    <h2>Place Your Order</h2>
+    <p>Fill in the details and we'll have it ready for you</p>
+  </div>
+
+  <form class="order-form" onsubmit="submitOrder(event)">
+
+    <span class="form-label-top">Choose Your Shake</span>
+    <div class="shake-selector" id="shakeSelector">
+      <div class="shake-option" onclick="selectShakeOpt(this,'Strawberry Bliss')">
+        <span class="so-emoji">🍓</span>Strawberry Bliss
+      </div>
+      <div class="shake-option" onclick="selectShakeOpt(this,'Choco Velvet')">
+        <span class="so-emoji">🍫</span>Choco Velvet
+      </div>
+      <div class="shake-option" onclick="selectShakeOpt(this,'Blueberry Dream')">
+        <span class="so-emoji">🫐</span>Blueberry Dream
+      </div>
+      <div class="shake-option" onclick="selectShakeOpt(this,'Mango Tango')">
+        <span class="so-emoji">🥭</span>Mango Tango
+      </div>
+      <div class="shake-option" onclick="selectShakeOpt(this,'Matcha Zen')">
+        <span class="so-emoji">🍵</span>Matcha Zen
+      </div>
+      <div class="shake-option" onclick="selectShakeOpt(this,'Caramel Cloud')">
+        <span class="so-emoji">🍦</span>Caramel Cloud
+      </div>
+    </div>
+    <input type="hidden" id="selectedShake" />
+
+    <span class="form-label-top">Select Size</span>
+    <div class="size-btns" id="sizeBtns">
+      <button type="button" class="size-btn" onclick="selectSize(this,'Small – 12oz')">Small 12oz<br><small>$5.99</small></button>
+      <button type="button" class="size-btn" onclick="selectSize(this,'Medium – 16oz')">Medium 16oz<br><small>$6.99</small></button>
+      <button type="button" class="size-btn" onclick="selectSize(this,'Large – 20oz')">Large 20oz<br><small>$7.99</small></button>
+    </div>
+    <input type="hidden" id="selectedSize" />
+
+    <div class="field">
+      <label>Quantity</label>
+      <select id="qty">
+        <option>1</option><option>2</option><option>3</option>
+        <option>4</option><option>5</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Special Instructions</label>
+      <textarea id="notes" placeholder="e.g. less sugar, extra cream, no nuts..."></textarea>
+    </div>
+
+    <button type="submit" class="submit-btn">🥤 Place My Order</button>
+  </form>
+</section>
+
+<footer>
+  © 2026 Shake Heaven · Made with love 🧡
+</footer>
+
+<div class="toast" id="toast">✅ Order placed! We'll get it ready shortly.</div>
+
+<script>
+  let chosenShake = '';
+  let chosenSize = '';
+
+  function selectShake(name) {
+    chosenShake = name;
+    document.getElementById('selectedShake').value = name;
+    // scroll to order
+    document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
+    // highlight in selector
+    document.querySelectorAll('.shake-option').forEach(el => {
+      el.classList.toggle('selected', el.textContent.trim().includes(name));
+    });
+    showToast('🍓 ' + name + ' added! Fill the form below.');
+  }
+
+  function selectShakeOpt(el, name) {
+    chosenShake = name;
+    document.getElementById('selectedShake').value = name;
+    document.querySelectorAll('.shake-option').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function selectSize(el, size) {
+    chosenSize = size;
+    document.getElementById('selectedSize').value = size;
+    document.querySelectorAll('.size-btn').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  const API_URL = 'http://localhost:3000/api/orders'; // ← change to your server URL
+
+  async function submitOrder(e) {
+    e.preventDefault();
+    const shake = document.getElementById('selectedShake').value;
+    const size  = document.getElementById('selectedSize').value;
+    const qty   = document.getElementById('qty').value;
+    const notes = document.getElementById('notes').value;
+
+    if (!shake) { showToast('⚠️ Please select a shake!'); return; }
+    if (!size)  { showToast('⚠️ Please select a size!'); return; }
+
+    const btn = e.target.querySelector('.submit-btn');
+    btn.textContent = 'Placing order...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shake, size, qty: parseInt(qty), notes, placedAt: new Date().toISOString() })
+      });
+      if (!res.ok) throw new Error('Server error');
+      showToast('🥤 Order placed! We\'ll get it ready shortly.');
+      e.target.reset();
+      document.querySelectorAll('.shake-option, .size-btn').forEach(el => el.classList.remove('selected'));
+    } catch (err) {
+      showToast('❌ Could not reach server. Is it running?');
+    } finally {
+      btn.textContent = '🥤 Place My Order';
+      btn.disabled = false;
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3200);
+  }
+</script>
+</body>
+</html>
